@@ -5,7 +5,7 @@ from langchain.schema import SystemMessage
 from langchain.chains import LLMChain
 from langchain.prompts import (ChatPromptTemplate, HumanMessagePromptTemplate,
                                MessagesPlaceholder)
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory, FileChatMessageHistory
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -15,13 +15,16 @@ prompt = ChatPromptTemplate(
         input_variables=["content"],
         messages=[SystemMessage(content="You are a chatbot talking to a human"),
                   # Where memory will be stored
-                  MessagesPlaceholder(variable_name="chat history"),
+                  MessagesPlaceholder(variable_name="chat_history"),
                   HumanMessagePromptTemplate.from_template("{content}")
         ]
 )
 
+history = FileChatMessageHistory("chat_history.json")
+
 memory = ConversationBufferMemory(
-        memory_key="chat history",
+        memory_key="chat_history",
+        chat_memory=history,
         return_messages=True
 )
 
@@ -29,6 +32,7 @@ chain = LLMChain(llm=llm,
         prompt=prompt,
         memory=memory,
         verbose=True)
+
 
 while True:
     content = input("Your prompt:")
